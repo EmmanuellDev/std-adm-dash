@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { collection, addDoc } from "firebase/firestore";
+import { auth, db } from "../services/firebase"; 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -33,14 +34,33 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
+  
+      // Update user profile
+      await updateProfile(userCredential.user, {
+        displayName: formData.name
+      });
+      
+      // Save additional user data to Firestore - CORRECTED VERSION
+      await addDoc(collection(db, "users"), {
+        uid: userCredential.user.uid,
+        name: formData.name,
+        email: formData.email,
+        degree: formData.degree,
+        department: formData.department,
+        year: formData.year,
+        course: formData.course,
+        createdAt: new Date(),
+      });
+  
       toast.success("Registration Successful!", {
         autoClose: 3000,
-        onClose: () => navigate("/dashboard"),
+        onClose: () => navigate("/login"),
       });
     } catch (error) {
       toast.error(error.message);
@@ -74,7 +94,7 @@ const SignUp = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaUser className="text-cyan-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-cyan-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -92,7 +112,7 @@ const SignUp = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaEnvelope className="text-pink-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-pink-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -110,7 +130,7 @@ const SignUp = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaLock className="text-purple-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-purple-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -128,7 +148,7 @@ const SignUp = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaGraduationCap className="text-cyan-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-cyan-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -146,7 +166,7 @@ const SignUp = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaUniversity className="text-pink-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-pink-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -164,7 +184,7 @@ const SignUp = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaCalendarAlt className="text-purple-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-purple-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -182,7 +202,7 @@ const SignUp = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
               <div className="relative">
                 <FaBook className="text-cyan-400 group-hover:animate-orbit-ring transition-all duration-300" />
                 <div className="absolute inset-0 border-2 border-cyan-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
@@ -216,12 +236,12 @@ const SignUp = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-200 text-sm font-futuristic">
             Already have an account?{" "}
-            <button
+            <span
               onClick={() => navigate("/login")}
-              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-300"
+              className="text-cyan-400 hover:text-cyan-300 cursor-pointer z-10 relative font-medium transition-colors duration-300"
             >
               Login
-            </button>
+            </span>
           </p>
         </div>
       </div>
