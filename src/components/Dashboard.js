@@ -101,11 +101,11 @@ const Dashboard = () => {
         {/* Header and Logout Button */}
         <div className="flex justify-between items-center mb-10">
           <div className="text-center flex-1">
-            <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 animate-text-glow">
+            <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-teal-400 to-green-500 animate-text-glow opacity-80">
               Welcome, {userData?.name || "User"}
             </h2>
             <p className="text-gray-100 mt-3 text-lg font-futuristic">
-              Your Cosmic Academic Hub
+              Your Academic Dashboard
             </p>
           </div>
           <button

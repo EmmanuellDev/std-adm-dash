@@ -15,8 +15,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   const ADMIN_CREDENTIALS = {
-    email: "bakku52@gmail.com",
-    password: "51kiss52"
+    email: "test1@gmail.com",
+    password: "123456"
   };
 
   const handleChange = (e) => {

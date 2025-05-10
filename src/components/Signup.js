@@ -84,9 +84,9 @@ const SignUp = () => {
         {/* Holographic prism overlay with parallax */}
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/15 via-pink-500/15 to-purple-500/15 opacity-60 animate-gradient-x group-hover:-translate-x-1 group-hover:-translate-y-1 transition-transform duration-500"></div>
         <div className="text-center mb-10">
-          <h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-purple-400 animate-text-glow">
-            Sign Up
-          </h2>
+<h2 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-teal-400 to-green-500 animate-text-glow opacity-80">
+  Sign Up
+</h2>
           <p className="text-gray-100 mt-3 text-lg font-futuristic">
             Connect to the Cosmic Grid
           </p>
@@ -201,23 +201,37 @@ const SignUp = () => {
             />
           </div>
 
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-              <div className="relative">
-                <FaBook className="text-cyan-400 group-hover:animate-orbit-ring transition-all duration-300" />
-                <div className="absolute inset-0 border-2 border-cyan-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
-              </div>
-            </div>
-            <input
-              type="text"
-              name="course"
-              value={formData.course}
-              onChange={handleChange}
-              placeholder="Course"
-              className="w-full pl-10 pr-3 py-3 bg-black/30 border border-cyan-500/50 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-400 transition-all duration-300 font-futuristic animate-neon-trail"
-              required
-            />
-          </div>
+         <div className="relative group">
+  <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+    <div className="relative">
+      <FaBook className="text-cyan-400 group-hover:animate-orbit-ring transition-all duration-300" />
+      <div className="absolute inset-0 border-2 border-cyan-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
+    </div>
+  </div>
+  <select
+    name="course"
+    value={formData.course}
+    onChange={handleChange}
+    className="w-full pl-10 pr-3 py-3 bg-black/30 border border-cyan-500/50 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-400 transition-all duration-300 font-futuristic animate-neon-trail"
+    required
+  >
+    <option value="" disabled className="text-cyan-400 bg-black">
+      Select Course
+    </option>
+    <option value="Solana" className="text-cyan-400 bg-black">
+      Solana
+    </option>
+    <option value="Full Stack" className="text-cyan-400 bg-black">
+      Full Stack
+    </option>
+    <option value="Front-end" className="text-cyan-400 bg-black">
+      Front-end
+    </option>
+    <option value="Back-end" className="text-cyan-400 bg-black">
+      Back-end
+    </option>
+  </select>
+</div>
 
           <button
             type="submit"

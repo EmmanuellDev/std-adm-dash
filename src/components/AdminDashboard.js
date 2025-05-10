@@ -4,10 +4,13 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db, collection, getDocs, doc, updateDoc, deleteDoc } from "../services/firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaSignOutAlt, FaUsers, FaEdit, FaTrash } from "react-icons/fa";
+import { FaSignOutAlt, FaUsers, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [nameQuery, setNameQuery] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
   const [loading, setLoading] = useState(true);
   const [editUser, setEditUser] = useState(null);
   const [formData, setFormData] = useState({
@@ -23,7 +26,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        if (user.email === "bakku52@gmail.com") {
+        if (user.email === "test1@gmail.com") {
           try {
             const querySnapshot = await getDocs(collection(db, "users"));
             const usersData = querySnapshot.docs.map((doc) => ({
@@ -31,6 +34,7 @@ const AdminDashboard = () => {
               ...doc.data(),
             }));
             setUsers(usersData);
+            setFilteredUsers(usersData);
           } catch (error) {
             toast.error("Error fetching users: " + error.message);
           }
@@ -47,6 +51,34 @@ const AdminDashboard = () => {
 
     return () => unsubscribe();
   }, [navigate]);
+
+  // Fixed course options (Bee removed)
+  const courseOptions = ["Solana", "Full Stack", "Front-end", "Back-end"];
+
+  const handleNameSearch = (e) => {
+    const query = e.target.value;
+    setNameQuery(query);
+    filterUsers(query, selectedCourse);
+  };
+
+  const handleCourseSelect = (e) => {
+    const course = e.target.value;
+    setSelectedCourse(course);
+    filterUsers(nameQuery, course);
+  };
+
+  const filterUsers = (nameQuery, selectedCourse) => {
+    let filtered = users;
+    if (nameQuery.trim()) {
+      filtered = filtered.filter((user) =>
+        user.name.toLowerCase().includes(nameQuery.toLowerCase())
+      );
+    }
+    if (selectedCourse && selectedCourse !== "All Courses") {
+      filtered = filtered.filter((user) => user.course === selectedCourse);
+    }
+    setFilteredUsers(filtered);
+  };
 
   const handleLogout = async () => {
     try {
@@ -68,7 +100,7 @@ const AdminDashboard = () => {
       degree: user.degree,
       department: user.department,
       year: user.year,
-      course: user.course,
+      course: courseOptions.includes(user.course) ? user.course : courseOptions[0], // Default to first option if invalid
     });
   };
 
@@ -87,6 +119,11 @@ const AdminDashboard = () => {
           user.id === editUser.id ? { ...user, ...formData } : user
         )
       );
+      setFilteredUsers((prev) =>
+        prev.map((user) =>
+          user.id === editUser.id ? { ...user, ...formData } : user
+        )
+      );
       setEditUser(null);
       toast.success("User updated successfully!");
     } catch (error) {
@@ -101,6 +138,7 @@ const AdminDashboard = () => {
       try {
         await deleteDoc(doc(db, "users", userId));
         setUsers((prev) => prev.filter((user) => user.id !== userId));
+        setFilteredUsers((prev) => prev.filter((user) => user.id !== userId));
         toast.success("User deleted successfully!");
       } catch (error) {
         toast.error("Error deleting user: " + error.message);
@@ -152,6 +190,55 @@ const AdminDashboard = () => {
           </button>
         </div>
 
+        {/* Search Bar and Course Dropdown */}
+        <div className="mb-6 flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+          <div className="relative group flex-1">
+            <input
+              type="text"
+              value={nameQuery}
+              onChange={handleNameSearch}
+              placeholder="Search by name..."
+              className="w-full pl-3 pr-10 py-3 bg-black/30 border border-cyan-500/50 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-cyan-400 transition-all duration-300 font-futuristic animate-neon-trail"
+            />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <div className="relative">
+                <FaSearch className="text-cyan-400 group-hover:animate-orbit-ring transition-all duration-300" />
+                <div className="absolute inset-0 border-2 border-cyan-400/50 rounded-full animate-spin-slow group-hover:animate-spin-fast"></div>
+              </div>
+            </div>
+          </div>
+          <div className="relative group flex-1">
+            <select
+              value={selectedCourse}
+              onChange={handleCourseSelect}
+              className="w-full pl-3 pr-10 py-3 bg-black border border-cyan-500/50 rounded-lg text-gray-100 focus:outline-none focus:border-cyan-400 transition-all duration-300 font-futuristic animate-neon-trail appearance-none"
+            >
+              <option value="All Courses">All Courses</option>
+              {courseOptions.map((course) => (
+                <option key={course} value={course}>
+                  {course}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg
+                className="w-5 h-5 text-cyan-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
         {/* Users Table */}
         <div className="bg-black/30 p-6 rounded-lg border border-cyan-500/50">
           <h3 className="text-2xl font-bold text-cyan-400 mb-6 font-futuristic flex items-center">
@@ -171,8 +258,8 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.length > 0 ? (
-                  users.map((user) => (
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
                     <tr key={user.id} className="border-b border-cyan-500/20">
                       <td className="p-4">{user.name}</td>
                       <td className="p-4">{user.email}</td>
@@ -181,25 +268,25 @@ const AdminDashboard = () => {
                       <td className="p-4">{user.year}</td>
                       <td className="p-4">{user.course}</td>
                       <td className="p-4">
-  <div className="flex space-x-4">
-    <button
-      type="button"
-      onClick={(e) => openEditModal(user, e)}
-      className="flex items-center justify-center px-3 py-2 bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/30 rounded-lg transition-colors font-futuristic z-10"
-      title="Edit"
-    >
-      <FaEdit className="w-5 h-5 mr-1" /> Edit
-    </button>
-    <button
-      type="button"
-      onClick={(e) => handleDelete(user.id, e)}
-      className="flex items-center justify-center px-3 py-2 bg-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/30 rounded-lg transition-colors font-futuristic z-10"
-      title="Delete"
-    >
-      <FaTrash className="w-5 h-5 mr-1" /> Delete
-    </button>
-  </div>
-</td>
+                        <div className="flex space-x-4">
+                          <button
+                            type="button"
+                            onClick={(e) => openEditModal(user, e)}
+                            className="flex items-center justify-center px-3 py-2 bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/30 rounded-lg transition-colors font-futuristic z-10"
+                            title="Edit"
+                          >
+                            <FaEdit className="w-5 h-5 mr-1" /> Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDelete(user.id, e)}
+                            className="flex items-center justify-center px-3 py-2 bg-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/30 rounded-lg transition-colors font-futuristic z-10"
+                            title="Delete"
+                          >
+                            <FaTrash className="w-5 h-5 mr-1" /> Delete
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 ) : (
@@ -278,14 +365,37 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <label className="text-gray-400 text-sm font-futuristic">Course</label>
-                <input
-                  type="text"
-                  name="course"
-                  value={formData.course}
-                  onChange={handleInputChange}
-                  className="w-full bg-black/50 border border-cyan-500/50 rounded-lg p-2 text-gray-100 font-futuristic focus:outline-none focus:border-cyan-400"
-                  required
-                />
+                <div className="relative">
+                  <select
+                    name="course"
+                    value={formData.course}
+                    onChange={handleInputChange}
+                    className="w-full bg-black border border-cyan-500/50 rounded-lg p-2 text-gray-100 font-futuristic focus:outline-none focus:border-cyan-400 appearance-none"
+                    required
+                  >
+                    {courseOptions.map((course) => (
+                      <option key={course} value={course}>
+                        {course}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <svg
+                      className="w-5 h-5 text-cyan-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
               <div className="flex space-x-4">
                 <button
@@ -344,6 +454,10 @@ const AdminDashboard = () => {
             0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 255, 0.8); }
             50% { box-shadow: 0 0 50px rgba(0, 255, 255, 1); }
           }
+          @keyframes neon-trail {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 255, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+          }
           .animate-swirl {
             animation: swirl 10s infinite;
           }
@@ -369,8 +483,14 @@ const AdminDashboard = () => {
           .animate-aura-pulse {
             animation: aura-pulse 6s ease-in-out infinite;
           }
+          .animate-neon-trail {
+            animation: neon-trail 5s ease-in-out infinite;
+          }
           .font-futuristic {
             font-family: 'Orbitron', sans-serif;
+          }
+          select::-ms-expand {
+            display: none;
           }
         `}
       </style>
